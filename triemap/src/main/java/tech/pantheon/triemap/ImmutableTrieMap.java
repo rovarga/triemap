@@ -127,11 +127,6 @@ public final class ImmutableTrieMap<K, V> extends TrieMap<K, V> {
     }
 
     @Override
-    boolean isReadOnly() {
-        return true;
-    }
-
-    @Override
     ImmutableIterator<K, V> iterator() {
         return immutableIterator();
     }

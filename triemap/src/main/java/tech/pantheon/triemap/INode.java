@@ -85,7 +85,7 @@ final class INode<K, V> extends BasicNode {
             // ==> if `ctr.gen` = `gen` then they are both equal to G.
             // ==> otherwise, we know that either `ctr.gen` > G, `gen` < G,
             // or both
-            if (ctr.gen == gen && !ct.isReadOnly()) {
+            if (ctr.gen == gen && ct instanceof MutableTrieMap) {
                 // try to commit
                 if (main.casPrev(prev, null)) {
                     return main;
@@ -387,7 +387,7 @@ final class INode<K, V> extends BasicNode {
                 if (sub instanceof INode) {
                     @SuppressWarnings("unchecked")
                     final INode<K, V> in = (INode<K, V>) sub;
-                    if (ct.isReadOnly() || startgen == in.gen) {
+                    if (ct instanceof ImmutableTrieMap || startgen == in.gen) {
                         return in.recLookup(key, hc, lev + LEVEL_BITS, this, startgen, ct);
                     }
 
@@ -399,13 +399,7 @@ final class INode<K, V> extends BasicNode {
                     return RESTART;
                 } else if (sub instanceof SNode) {
                     // 2) singleton node
-                    @SuppressWarnings("unchecked")
-                    final SNode<K, V> sn = (SNode<K, V>) sub;
-                    if (sn.hc == hc && key.equals(sn.key)) {
-                        return sn.value;
-                    }
-
-                    return null;
+                    return lookupSingleton((SNode<K, V>) sub, ct, key, hc);
                 } else {
                     throw CNode.invalidElement(sub);
                 }
@@ -422,16 +416,21 @@ final class INode<K, V> extends BasicNode {
         }
     }
 
+    private Object lookupSingleton(final SNode<K, V> sn, final TrieMap<K, V> ct, final K key, final int hc) {
+        return sn.hc == hc && key.equals(sn.key) ? sn.value : null;
+    }
+
     private Object cleanReadOnly(final TNode<K, V> tn, final int lev, final INode<K, V> parent,
             final TrieMap<K, V> ct, final K key, final int hc) {
-        if (ct.isReadOnly()) {
-            if (tn.hc == hc && key.equals(tn.key)) {
-                return tn.value;
-            }
+        return ct instanceof ImmutableTrieMap ? immutableCleanReadOnly(tn, ct, key, hc)
+                : mutableCleanReadOnly(lev, parent, ct);
+    }
 
-            return null;
-        }
+    private Object immutableCleanReadOnly(final TNode<K, V> tn, final TrieMap<K, V> ct, final K key, final int hc) {
+        return tn.hc == hc &&  key.equals(tn.key) ? tn.value : null;
+    }
 
+    private LookupResult mutableCleanReadOnly(final int lev, final INode<K, V> parent, final TrieMap<K, V> ct) {
         clean(parent, ct, lev - LEVEL_BITS);
         return RESTART;
     }

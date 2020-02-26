@@ -144,8 +144,6 @@ public abstract class TrieMap<K, V> extends AbstractMap<K, V> implements Concurr
 
     abstract AbstractKeySet<K> createKeySet();
 
-    abstract boolean isReadOnly();
-
     abstract INode<K, V> rdcssReadRoot(boolean abort);
 
     /**
@@ -190,7 +188,7 @@ public abstract class TrieMap<K, V> extends AbstractMap<K, V> implements Concurr
     }
 
     final Object writeReplace() throws ObjectStreamException {
-        return new SerializationProxy(immutableSnapshot(), isReadOnly());
+        return new SerializationProxy(immutableSnapshot(), this instanceof ImmutableTrieMap);
     }
 
     /* package-protected utility methods */

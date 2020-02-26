@@ -145,11 +145,6 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     }
 
     @Override
-    boolean isReadOnly() {
-        return false;
-    }
-
-    @Override
     @SuppressWarnings("unchecked")
     INode<K, V> rdcssReadRoot(final boolean abort) {
         final Object r = /* READ */ root;
