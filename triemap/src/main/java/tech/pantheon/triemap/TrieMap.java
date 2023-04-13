@@ -19,9 +19,11 @@ import static java.util.Objects.requireNonNull;
 import static tech.pantheon.triemap.LookupResult.RESTART;
 
 import java.io.Serializable;
-import java.util.AbstractMap;
+import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import org.eclipse.jdt.annotation.NonNull;
 
 /**
  * This is a port of Scala's TrieMap class from the Scala Collections library. This implementation does not support
@@ -34,15 +36,14 @@ import java.util.concurrent.ConcurrentMap;
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  */
-public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K,V>, Serializable
+public abstract sealed class TrieMap<K, V> implements ConcurrentMap<K,V>, Serializable
         permits ImmutableTrieMap, MutableTrieMap {
     @java.io.Serial
     private static final long serialVersionUID = 1L;
 
     private transient AbstractEntrySet<K, V, ?> entrySet;
-    // Note: AbstractMap.keySet is something we do not have access to. At some point we should just not subclass
-    //       AbstractMap and lower our memory footprint.
-    private transient AbstractKeySet<K, ?> theKeySet;
+    private transient AbstractKeySet<K, V, ?> keySet;
+    private transient AbstractValues<K, V, ?> values;
 
     TrieMap() {
         // Hidden on purpose
@@ -94,7 +95,13 @@ public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements 
 
     @Override
     public final boolean containsValue(final Object value) {
-        return super.containsValue(requireNonNull(value));
+        final var checked = requireNonNull(value);
+        for (var entry : entrySet()) {
+            if (checked.equals(entry.getValue())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -105,8 +112,14 @@ public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements 
 
     @Override
     public final Set<K> keySet() {
-        final AbstractKeySet<K, ?> ret;
-        return (ret = theKeySet) != null ? ret : (theKeySet = createKeySet());
+        final AbstractKeySet<K, V, ?> ret;
+        return (ret = keySet) != null ? ret : (keySet = createKeySet());
+    }
+
+    @Override
+    public final Collection<V> values() {
+        final AbstractValues<K, V, ?> ret;
+        return (ret = values) != null ? ret : (values = createValues());
     }
 
     @Override
@@ -140,11 +153,55 @@ public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements 
     @Override
     public abstract int size();
 
+    @Override
+    public final boolean isEmpty() {
+        return size() == 0;
+    }
+
+    @Override
+    public final int hashCode() {
+        int ret = 0;
+        for (var entry : entrySet()) {
+            ret += entry.hashCode();
+        }
+        return ret;
+    }
+
+    @Override
+    public final String toString() {
+        var it = entrySet().iterator();
+        if (!it.hasNext()) {
+            return "{}";
+        }
+
+        final var sb = new StringBuilder().append('{');
+        for (;;) {
+            final var entry = it.next();
+            final var key = entry.getKey();
+            sb.append(key == this ? "(this Map)" : key).append('=');
+            final var value = entry.getValue();
+            sb.append(value == this ? "(this Map)" : value);
+            if (!it.hasNext()) {
+                return sb.append('}').toString();
+            }
+            sb.append(", ");
+        }
+    }
+
+    @Override
+    public final boolean equals(final Object obj) {
+        return this == obj || obj instanceof Map<?, ?> other && equals(other);
+    }
+
+    abstract boolean equals(@NonNull Map<?, ?> other);
+
     /* internal methods implemented by subclasses */
 
     abstract AbstractEntrySet<K, V, ?> createEntrySet();
 
-    abstract AbstractKeySet<K, ?> createKeySet();
+    abstract AbstractKeySet<K, V, ?> createKeySet();
+
+    abstract AbstractValues<K, V, ?> createValues();
 
     abstract boolean isReadOnly();
 

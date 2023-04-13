@@ -30,7 +30,7 @@ import org.eclipse.jdt.annotation.NonNull;
  *
  * @param <K> the type of keys
  */
-abstract sealed class AbstractKeySet<K, M extends TrieMap<K, ?>> extends AbstractSet<K>
+abstract sealed class AbstractKeySet<K, V, M extends TrieMap<K, V>> extends AbstractSet<K>
         permits ImmutableKeySet, MutableKeySet {
     final @NonNull M map;
 
@@ -62,9 +62,9 @@ abstract sealed class AbstractKeySet<K, M extends TrieMap<K, ?>> extends Abstrac
     }
 
     @Override
-    public abstract KeySetIterator<K> iterator();
+    public abstract KeySetIterator<K, V> iterator();
 
-    final @NonNull KeySetIterator<K> immutableIterator() {
+    final @NonNull KeySetIterator<K, V> immutableIterator() {
         return new KeySetIterator<>(map.immutableIterator());
     }
 

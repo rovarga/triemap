@@ -28,13 +28,13 @@ import java.util.function.Predicate;
  *
  * @param <K> the type of keys
  */
-final class ImmutableKeySet<K> extends AbstractKeySet<K, ImmutableTrieMap<K, ?>> {
-    ImmutableKeySet(final ImmutableTrieMap<K, ?> map) {
+final class ImmutableKeySet<K, V> extends AbstractKeySet<K, V, ImmutableTrieMap<K, V>> {
+    ImmutableKeySet(final ImmutableTrieMap<K, V> map) {
         super(map);
     }
 
     @Override
-    public KeySetIterator<K> iterator() {
+    public KeySetIterator<K, V> iterator() {
         return immutableIterator();
     }
 

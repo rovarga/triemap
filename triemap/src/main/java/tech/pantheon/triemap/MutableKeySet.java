@@ -24,13 +24,13 @@ import java.util.Spliterator;
  *
  * @param <K> the type of keys
  */
-final class MutableKeySet<K> extends AbstractKeySet<K, MutableTrieMap<K, ?>> {
-    MutableKeySet(final MutableTrieMap<K, ?> map) {
+final class MutableKeySet<K, V> extends AbstractKeySet<K, V, MutableTrieMap<K, V>> {
+    MutableKeySet(final MutableTrieMap<K, V> map) {
         super(map);
     }
 
     @Override
-    public KeySetIterator<K> iterator() {
+    public KeySetIterator<K, V> iterator() {
         return new KeySetIterator<>(map.iterator());
     }
 

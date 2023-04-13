@@ -27,7 +27,7 @@ class MutableKeySetTest {
     private static final String KEY = "key";
     private static final String VALUE = "value";
 
-    private MutableKeySet<String> set;
+    private MutableKeySet<String, ?> set;
     private MutableTrieMap<String, String> map;
 
     @BeforeEach

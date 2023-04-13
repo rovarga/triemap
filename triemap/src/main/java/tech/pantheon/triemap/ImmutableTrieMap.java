@@ -118,13 +118,40 @@ public final class ImmutableTrieMap<K, V> extends TrieMap<K, V> {
     }
 
     @Override
+    boolean equals(final Map<?, ?> other) {
+        if (other.size() != size()) {
+            return false;
+        }
+
+        for (var e : entrySet()) {
+            final Object value;
+            try {
+                value = other.get(e.getKey());
+            } catch (ClassCastException unused) {
+                return false;
+            }
+
+            if (value == null || !value.equals(e.getValue())) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    @Override
     ImmutableEntrySet<K, V> createEntrySet() {
         return new ImmutableEntrySet<>(this);
     }
 
     @Override
-    ImmutableKeySet<K> createKeySet() {
+    ImmutableKeySet<K, V> createKeySet() {
         return new ImmutableKeySet<>(this);
+    }
+
+    @Override
+    ImmutableValues<K, V> createValues() {
+        return new ImmutableValues<>(this);
     }
 
     @Override

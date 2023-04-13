@@ -10,15 +10,15 @@ package tech.pantheon.triemap;
 import java.util.Map.Entry;
 
 /**
- * Iterator given out by {@link AbstractKeySet} implementations.
+ * Iterator given out by {@link AbstractValues} implementations.
  */
-final class KeySetIterator<K, V> extends AbstractTransformIterator<K, K, V> {
-    KeySetIterator(final AbstractIterator<K, V> delegate) {
+final class ValuesIterator<K, V> extends AbstractTransformIterator<V, K, V> {
+    ValuesIterator(final AbstractIterator<K, V> delegate) {
         super(delegate);
     }
 
     @Override
-    K transform(final Entry<K, V> entry) {
-        return entry.getKey();
+    V transform(final Entry<K, V> entry) {
+        return entry.getValue();
     }
 }

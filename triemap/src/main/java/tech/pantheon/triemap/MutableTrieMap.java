@@ -22,6 +22,7 @@ import static tech.pantheon.triemap.PresencePredicate.PRESENT;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
+import java.util.Map;
 import org.eclipse.jdt.annotation.NonNull;
 
 /**
@@ -70,6 +71,14 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     public V put(final K key, final V value) {
         final var k = requireNonNull(key);
         return insertifhc(k, computeHash(k), requireNonNull(value), null).orNull();
+    }
+
+    @Override
+    @SuppressWarnings("checkstyle:parameterName")
+    public void putAll(final Map<? extends K, ? extends V> m) {
+        for (var entry : m.entrySet()) {
+            put(entry.getKey(), entry.getValue());
+        }
     }
 
     @Override
@@ -131,6 +140,11 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     }
 
     @Override
+    public boolean equals(final Map<?, ?> other) {
+        return immutableSnapshot().equals(other);
+    }
+
+    @Override
     MutableEntrySet<K, V> createEntrySet() {
         // FIXME: it would be nice to have a ReadWriteTrieMap with read-only iterator
         //        if (readOnlyEntrySet) return ImmutableEntrySet(this);
@@ -138,8 +152,13 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     }
 
     @Override
-    MutableKeySet<K> createKeySet() {
+    MutableKeySet<K, V> createKeySet() {
         return new MutableKeySet<>(this);
+    }
+
+    @Override
+    MutableValues<K, V> createValues() {
+        return new MutableValues<>(this);
     }
 
     @Override
